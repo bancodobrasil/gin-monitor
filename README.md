@@ -80,7 +80,7 @@ if err != nil {
 
 r := gin.NewRouter()
 // Register gin-monitor middleware
-r.Use(monitor.Prometheus)
+r.Use(monitor.Prometheus())
 ```
 
 > :warning: **NOTE**: 
@@ -92,7 +92,7 @@ You must register a specific router to expose the application metrics:
 
 ```go
 // Register metrics endpoint
-r.Handle("/metrics", promhttp.Handler()).Methods(http.MethodGet)
+r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 ```
 
 ### Register Error Message
@@ -199,14 +199,14 @@ func main() {
 	dependencyChecker := &FakeDependencyChecker{}
 	monitor.AddDependencyChecker(dependencyChecker, time.Second * 30)
 
-	r := gin.NewRouter()
+	r := gin.New()
 
 	// Register gin-monitor middleware
-	r.Use(monitor.Prometheus)
+	r.Use(monitor.Prometheus())
 	// Register metrics endpoint
-	r.Handle("/metrics", promhttp.Handler()).Methods(http.MethodGet)
+	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	// Routes consist of a path and a handler function.
-	r.HandleFunc("/", YourHandler)
+	r.GET("/", gin.WrapF(YourHandler))
 
 	// Bind to a port and pass our router in
 	log.Fatal(http.ListenAndServe(":8000", r))

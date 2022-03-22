@@ -1,12 +1,13 @@
-package mux_monitor_test
+package gin_monitor_test
 
 import (
 	"log"
 	"net/http"
+	"testing"
 	"time"
 
-	"github.com/gorilla/mux"
-	muxMonitor "github.com/labbsr0x/mux-monitor"
+	"github.com/gin-gonic/gin"
+	ginMonitor "github.com/labbsr0x/gin-monitor"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -16,17 +17,17 @@ func (m *FakeDependencyChecker) GetDependencyName() string {
 	return "fake-dependency"
 }
 
-func (m *FakeDependencyChecker) Check() muxMonitor.DependencyStatus {
-	return muxMonitor.DOWN
+func (m *FakeDependencyChecker) Check() ginMonitor.DependencyStatus {
+	return ginMonitor.DOWN
 }
 
 func YourHandler(w http.ResponseWriter, _ *http.Request) {
-	_, _ = w.Write([]byte("mux-monitor!\n"))
+	_, _ = w.Write([]byte("gin-monitor!\n"))
 }
 
-func main() {
-	// Creates mux-monitor instance
-	monitor, err := muxMonitor.New("v1.0.0", muxMonitor.DefaultErrorMessageKey, muxMonitor.DefaultBuckets)
+func TestMainHandler(t *testing.T) {
+	// Creates gin-monitor instance
+	monitor, err := ginMonitor.New("v1.0.0", ginMonitor.DefaultErrorMessageKey, ginMonitor.DefaultBuckets)
 	if err != nil {
 		panic(err)
 	}
@@ -34,14 +35,14 @@ func main() {
 	dependencyChecker := &FakeDependencyChecker{}
 	monitor.AddDependencyChecker(dependencyChecker, time.Second*30)
 
-	r := mux.NewRouter()
+	r := gin.New()
 
-	// Register mux-monitor middleware
-	r.Use(monitor.Prometheus)
+	// Register gin-monitor middleware
+	r.Use(monitor.Prometheus())
 	// Register metrics endpoint
-	r.Handle("/metrics", promhttp.Handler()).Methods(http.MethodGet)
+	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	// Routes consist of a path and a handler function.
-	r.HandleFunc("/", YourHandler)
+	r.GET("/", gin.WrapF(YourHandler))
 
 	// Bind to a port and pass our router in
 	log.Fatal(http.ListenAndServe(":8000", r))

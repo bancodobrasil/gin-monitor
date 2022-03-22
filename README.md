@@ -1,6 +1,6 @@
-# mux-monitor
+# gin-monitor
 
-A Prometheus middleware to add basic but very useful metrics for your gorilla/mux app.
+A Prometheus middleware to add basic but very useful metrics for your gin-gonic/gin app.
 
 ## Metrics
 
@@ -63,7 +63,7 @@ Labels:
 With a [correctly configured](https://golang.org/doc/install#testing) Go toolchain:
 
 ```sh
-go get -u github.com/labbsr0x/mux-monitor
+go get -u github.com/labbsr0x/gin-monitor
 ```
 
 ### Register Metrics Middleware 
@@ -72,14 +72,14 @@ You must register the metrics middleware to enable metric collection.
 Metrics Middleware can be added to a router using `Router.Use()`:
 
 ```go
-// Creates mux-monitor instance
-monitor, err := muxMonitor.New("v1.0.0", muxMonitor.DefaultErrorMessageKey, muxMonitor.DefaultBuckets)
+// Creates gin-monitor instance
+monitor, err := ginMonitor.New("v1.0.0", ginMonitor.DefaultErrorMessageKey, ginMonitor.DefaultBuckets)
 if err != nil {
     panic(err)
 }
 
-r := mux.NewRouter()
-// Register mux-monitor middleware
+r := gin.NewRouter()
+// Register gin-monitor middleware
 r.Use(monitor.Prometheus)
 ```
 
@@ -97,19 +97,19 @@ r.Handle("/metrics", promhttp.Handler()).Methods(http.MethodGet)
 
 ### Register Error Message
 
-It's possible to register the error message to your metrics, you must set a header to your `http.Request` with key defined on `muxMonitor.New`.
+It's possible to register the error message to your metrics, you must set a header to your `http.Request` with key defined on `ginMonitor.New`.
 
-The following code creates a monitor instance with the error message key `muxMonitor.DefaultErrorMessageKey` passed by the second parameter:
+The following code creates a monitor instance with the error message key `ginMonitor.DefaultErrorMessageKey` passed by the second parameter:
 
 ```go
-// Creates mux-monitor instance
-monitor, err := muxMonitor.New("v1.0.0", muxMonitor.DefaultErrorMessageKey, muxMonitor.DefaultBuckets)
+// Creates gin-monitor instance
+monitor, err := ginMonitor.New("v1.0.0", ginMonitor.DefaultErrorMessageKey, ginMonitor.DefaultBuckets)
 ```
 
-At your handler, your must set a header with the same key `muxMonitor.DefaultErrorMessageKey`:
+At your handler, your must set a header with the same key `ginMonitor.DefaultErrorMessageKey`:
 ```go
 func ErrorHandler(w http.ResponseWriter, r *http.Request) {
-	r.Header.Set(muxMonitor.DefaultErrorMessageKey, "this is an error message - internal server error")
+	r.Header.Set(ginMonitor.DefaultErrorMessageKey, "this is an error message - internal server error")
 	w.WriteHeader(http.StatusInternalServerError)
 }
 ``` 
@@ -131,17 +131,17 @@ func (m *FakeDependencyChecker) GetDependencyName() string {
 	return "fake-dependency"
 }
 
-func (m *FakeDependencyChecker) Check() muxMonitor.DependencyStatus {
-    // Do your things and return muxMonitor.UP or muxMonitor.DOWN
-	return muxMonitor.DOWN
+func (m *FakeDependencyChecker) Check() ginMonitor.DependencyStatus {
+    // Do your things and return ginMonitor.UP or ginMonitor.DOWN
+	return ginMonitor.DOWN
 }
 ```
 
 Adding the dependency checker to the monitor:
 ```go
 func main() {
-	// Creates mux-monitor instance
-	monitor, err := muxMonitor.New("v1.0.0", muxMonitor.DefaultErrorMessageKey, muxMonitor.DefaultBuckets)
+	// Creates gin-monitor instance
+	monitor, err := ginMonitor.New("v1.0.0", ginMonitor.DefaultErrorMessageKey, ginMonitor.DefaultBuckets)
 	if err != nil {
 		panic(err)
 	}
@@ -162,7 +162,7 @@ monitor.CollectDependencyTime("http-dependency", "http", "200", "GET", "localhos
 
 ## Example
 
-Here's a runnable example of a small `mux` based server configured with `mux-monitor`:
+Here's a runnable example of a small `gin` based server configured with `gin-monitor`:
 
 ```go
 import (
@@ -170,8 +170,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
-	muxMonitor "github.com/labbsr0x/mux-monitor"
+	"github.com/gorilla/gin"
+	ginMonitor "github.com/labbsr0x/gin-monitor"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -181,17 +181,17 @@ func (m *FakeDependencyChecker) GetDependencyName() string {
 	return "fake-dependency"
 }
 
-func (m *FakeDependencyChecker) Check() muxMonitor.DependencyStatus {
-	return muxMonitor.DOWN
+func (m *FakeDependencyChecker) Check() ginMonitor.DependencyStatus {
+	return ginMonitor.DOWN
 }
 
 func YourHandler(w http.ResponseWriter, _ *http.Request) {
-	_, _ = w.Write([]byte("mux-monitor!\n"))
+	_, _ = w.Write([]byte("gin-monitor!\n"))
 }
 
 func main() {
-	// Creates mux-monitor instance
-	monitor, err := muxMonitor.New("v1.0.0", muxMonitor.DefaultErrorMessageKey, muxMonitor.DefaultBuckets)
+	// Creates gin-monitor instance
+	monitor, err := ginMonitor.New("v1.0.0", ginMonitor.DefaultErrorMessageKey, ginMonitor.DefaultBuckets)
 	if err != nil {
 		panic(err)
 	}
@@ -199,9 +199,9 @@ func main() {
 	dependencyChecker := &FakeDependencyChecker{}
 	monitor.AddDependencyChecker(dependencyChecker, time.Second * 30)
 
-	r := mux.NewRouter()
+	r := gin.NewRouter()
 
-	// Register mux-monitor middleware
+	// Register gin-monitor middleware
 	r.Use(monitor.Prometheus)
 	// Register metrics endpoint
 	r.Handle("/metrics", promhttp.Handler()).Methods(http.MethodGet)

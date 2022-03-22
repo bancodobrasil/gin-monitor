@@ -1,4 +1,4 @@
-package mux_monitor
+package gin_monitor
 
 import (
 	"net/http"

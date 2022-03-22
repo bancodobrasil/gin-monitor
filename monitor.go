@@ -1,13 +1,12 @@
-package mux_monitor
+package gin_monitor
 
 import (
 	"errors"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
@@ -103,14 +102,15 @@ func (m *Monitor) CollectDependencyTime(name, reqType, status, method, addr, isE
 }
 
 // Prometheus implements mux.MiddlewareFunc.
-func (m *Monitor) Prometheus(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func (m *Monitor) Prometheus() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		w := c.Writer
+		r := c.Request
 		respWriter := NewResponseWriter(w)
 
-		route := mux.CurrentRoute(r)
-		path, _ := route.GetPathTemplate()
+		path := r.URL.Path
 
-		next.ServeHTTP(respWriter, r)
+		c.Next()
 
 		duration := time.Since(respWriter.started)
 
@@ -122,7 +122,7 @@ func (m *Monitor) Prometheus(next http.Handler) http.Handler {
 
 		m.collectTime(r.Proto, statusCodeStr, r.Method, path, isErrorStr, errorMessage, duration.Seconds())
 		m.collectSize(r.Proto, statusCodeStr, r.Method, path, isErrorStr, errorMessage, float64(respWriter.Count()))
-	})
+	}
 }
 
 // AddDependencyChecker creates a ticker that periodically executes the checker and collects the dependency state metrics

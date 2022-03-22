@@ -66,8 +66,9 @@ With a [correctly configured](https://golang.org/doc/install#testing) Go toolcha
 go get -u github.com/labbsr0x/gin-monitor
 ```
 
-### Register Metrics Middleware 
-You must register the metrics middleware to enable metric collection. 
+### Register Metrics Middleware
+
+You must register the metrics middleware to enable metric collection.
 
 Metrics Middleware can be added to a router using `Router.Use()`:
 
@@ -83,7 +84,7 @@ r := gin.NewRouter()
 r.Use(monitor.Prometheus())
 ```
 
-> :warning: **NOTE**: 
+> :warning: **NOTE**:
 > This middleware must be the first in the middleware chain file so that you can get the most accurate measurement of latency and response size.
 
 ### Expose Metrics Endpoint
@@ -107,15 +108,16 @@ monitor, err := ginMonitor.New("v1.0.0", ginMonitor.DefaultErrorMessageKey, ginM
 ```
 
 At your handler, your must set a header with the same key `ginMonitor.DefaultErrorMessageKey`:
+
 ```go
 func ErrorHandler(w http.ResponseWriter, r *http.Request) {
-	r.Header.Set(ginMonitor.DefaultErrorMessageKey, "this is an error message - internal server error")
-	w.WriteHeader(http.StatusInternalServerError)
+ r.Header.Set(ginMonitor.DefaultErrorMessageKey, "this is an error message - internal server error")
+ w.WriteHeader(http.StatusInternalServerError)
 }
-``` 
+```
 
-> :warning: **NOTE**: 
-> The cardinality of this label affect Prometheus performance 
+> :warning: **NOTE**:
+> The cardinality of this label affect Prometheus performance
 
 ### Dependency Metrics
 
@@ -124,30 +126,32 @@ func ErrorHandler(w http.ResponseWriter, r *http.Request) {
 To add a dependency state metrics to the Monitor, you must create a checker implementing the interface `DependencyChecker` and add an instance to the Monitor with the period interval that the dependency must be checked.
 
 Implementing the `DependencyChecker` interface:
+
 ```go
 type FakeDependencyChecker struct {}
 
 func (m *FakeDependencyChecker) GetDependencyName() string {
-	return "fake-dependency"
+ return "fake-dependency"
 }
 
 func (m *FakeDependencyChecker) Check() ginMonitor.DependencyStatus {
     // Do your things and return ginMonitor.UP or ginMonitor.DOWN
-	return ginMonitor.DOWN
+ return ginMonitor.DOWN
 }
 ```
 
 Adding the dependency checker to the monitor:
+
 ```go
 func main() {
-	// Creates gin-monitor instance
-	monitor, err := ginMonitor.New("v1.0.0", ginMonitor.DefaultErrorMessageKey, ginMonitor.DefaultBuckets)
-	if err != nil {
-		panic(err)
-	}
+ // Creates gin-monitor instance
+ monitor, err := ginMonitor.New("v1.0.0", ginMonitor.DefaultErrorMessageKey, ginMonitor.DefaultBuckets)
+ if err != nil {
+  panic(err)
+ }
 
-	dependencyChecker := &FakeDependencyChecker{}
-	monitor.AddDependencyChecker(dependencyChecker, time.Second * 30)
+ dependencyChecker := &FakeDependencyChecker{}
+ monitor.AddDependencyChecker(dependencyChecker, time.Second * 30)
 }
 ```
 
@@ -156,9 +160,10 @@ func main() {
 You can also monitor request latency for dependencies calling `monitor.CollectDependencyTime` method.
 
 e.g.
+
 ```go
 monitor.CollectDependencyTime("http-dependency", "http", "200", "GET", "localhost:8001", "false", "", 10)
-``` 
+```
 
 ## Example
 
@@ -166,50 +171,50 @@ Here's a runnable example of a small `gin` based server configured with `gin-mon
 
 ```go
 import (
-	"log"
-	"net/http"
-	"time"
+ "log"
+ "net/http"
+ "time"
 
-	"github.com/gorilla/gin"
-	ginMonitor "github.com/labbsr0x/gin-monitor"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+ "github.com/gorilla/gin"
+ ginMonitor "github.com/labbsr0x/gin-monitor"
+ "github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type FakeDependencyChecker struct {}
 
 func (m *FakeDependencyChecker) GetDependencyName() string {
-	return "fake-dependency"
+ return "fake-dependency"
 }
 
 func (m *FakeDependencyChecker) Check() ginMonitor.DependencyStatus {
-	return ginMonitor.DOWN
+ return ginMonitor.DOWN
 }
 
 func YourHandler(w http.ResponseWriter, _ *http.Request) {
-	_, _ = w.Write([]byte("gin-monitor!\n"))
+ _, _ = w.Write([]byte("gin-monitor!\n"))
 }
 
 func main() {
-	// Creates gin-monitor instance
-	monitor, err := ginMonitor.New("v1.0.0", ginMonitor.DefaultErrorMessageKey, ginMonitor.DefaultBuckets)
-	if err != nil {
-		panic(err)
-	}
+ // Creates gin-monitor instance
+ monitor, err := ginMonitor.New("v1.0.0", ginMonitor.DefaultErrorMessageKey, ginMonitor.DefaultBuckets)
+ if err != nil {
+  panic(err)
+ }
 
-	dependencyChecker := &FakeDependencyChecker{}
-	monitor.AddDependencyChecker(dependencyChecker, time.Second * 30)
+ dependencyChecker := &FakeDependencyChecker{}
+ monitor.AddDependencyChecker(dependencyChecker, time.Second * 30)
 
-	r := gin.New()
+ r := gin.New()
 
-	// Register gin-monitor middleware
-	r.Use(monitor.Prometheus())
-	// Register metrics endpoint
-	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
-	// Routes consist of a path and a handler function.
-	r.GET("/", gin.WrapF(YourHandler))
+ // Register gin-monitor middleware
+ r.Use(monitor.Prometheus())
+ // Register metrics endpoint
+ r.GET("/metrics", gin.WrapH(promhttp.Handler()))
+ // Routes consist of a path and a handler function.
+ r.GET("/", gin.WrapF(YourHandler))
 
-	// Bind to a port and pass our router in
-	log.Fatal(http.ListenAndServe(":8000", r))
+ // Bind to a port and pass our router in
+ log.Fatal(http.ListenAndServe(":8000", r))
 }
 ```
 

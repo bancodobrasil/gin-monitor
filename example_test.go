@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
+	ginMonitor "github.com/bancodobrasil/gin-monitor"
 	"github.com/gin-gonic/gin"
-	ginMonitor "github.com/labbsr0x/gin-monitor"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 

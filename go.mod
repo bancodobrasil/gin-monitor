@@ -1,4 +1,4 @@
-module github.com/labbsr0x/gin-monitor
+module github.com/bancodobrasil/gin-monitor
 
 go 1.13
 

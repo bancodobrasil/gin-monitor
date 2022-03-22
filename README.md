@@ -63,7 +63,7 @@ Labels:
 With a [correctly configured](https://golang.org/doc/install#testing) Go toolchain:
 
 ```sh
-go get -u github.com/labbsr0x/gin-monitor
+go get -u github.com/bancodobrasil/gin-monitor
 ```
 
 ### Register Metrics Middleware
@@ -176,7 +176,7 @@ import (
  "time"
 
  "github.com/gorilla/gin"
- ginMonitor "github.com/labbsr0x/gin-monitor"
+ ginMonitor "github.com/bancodobrasil/gin-monitor"
  "github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -220,4 +220,4 @@ func main() {
 
 ## Big Brother
 
-This project is part of a more large application called [Big Brother](https://github.com/labbsr0x/big-brother).
+This project is part of a more large application called [Big Brother](https://github.com/bancodobrasil/big-brother).
